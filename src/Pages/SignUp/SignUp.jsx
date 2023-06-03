@@ -7,29 +7,47 @@ import Swal from "sweetalert2";
 
 
 const SignUp = () => {
-    const { register, handleSubmit,reset, formState: { errors } } = useForm();
-    const {createUser, updateUserProfile} = useContext(AuthContext);
+    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+    const { createUser, updateUserProfile } = useContext(AuthContext);
     const navigate = useNavigate()
 
     const onSubmit = data => {
         console.log(data)
         createUser(data.email, data.password)
-        .then(result =>{
-            const loggedUser = result.user;
-            console.log(loggedUser);
-            updateUserProfile(data.name, data.photo)
-            .then(() => {
-                console.log('Profile updatedd')
-                reset()
-                Swal.fire(
-                  'Good job!',
-                  'User created succesfully!',
-                  'success'
-                )
-                navigate('/')
+            .then(result => {
+                const loggedUser = result.user;
+                console.log(loggedUser);
+                updateUserProfile(data.name, data.photo)
+                    .then(() => {
+
+                            const savedUser = {name: data.name, email: data.email}
+                        fetch('http://localhost:5000/users',{
+                            method: "POST",
+                            headers: {
+                                'content-type' : 'application/json'
+                            },
+                            body : JSON.stringify(savedUser)
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                console.log(data);
+                                if (data.insertedId) {
+                                    reset()
+                                    Swal.fire(
+                                        'Good job!',
+                                        'User created succesfully!',
+                                        'success'
+                                    )
+                                    navigate('/')
+                                }
+                            })
+
+
+
+
+                    })
+                    .catch(error => console.log(error))
             })
-            .catch(error => console.log(error))
-        })
     };
 
 
@@ -79,13 +97,13 @@ const SignUp = () => {
                                 <label className="label">
                                     <span className="label-text">Password</span>
                                 </label>
-                                <input {...register("password", { 
-                                    required: true, 
-                                    maxLength: 20, 
+                                <input {...register("password", {
+                                    required: true,
+                                    maxLength: 20,
                                     minLength: 6,
                                     pattern: /(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z])/
 
-                                      })} type="password" name="password" placeholder="password" className="input input-bordered" />
+                                })} type="password" name="password" placeholder="password" className="input input-bordered" />
 
                                 {errors.password?.type === 'required' && <p className="text-red-500">Password is required.</p>}
 
