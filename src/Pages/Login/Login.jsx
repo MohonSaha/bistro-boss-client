@@ -4,6 +4,7 @@ import { AuthContext } from "../../providers/authProvider";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import TitlePage from "../Shared/TitlePage/TitlePage";
 import Swal from "sweetalert2";
+import SocialLogin from "../Shared/SocialLogin/SocialLogin";
 
 
 const Login = () => {
@@ -107,6 +108,8 @@ const Login = () => {
                         </form>
 
                         <p><small>New Here? <Link to='/signup'>Create an account</Link></small></p>
+
+                        <SocialLogin></SocialLogin>
                     </div>
                 </div>
             </div>
