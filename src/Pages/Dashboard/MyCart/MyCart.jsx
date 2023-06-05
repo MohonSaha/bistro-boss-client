@@ -2,6 +2,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import useCart from "../../../hooks/useCart";
 import TitlePage from "../../Shared/TitlePage/TitlePage";
 import Swal from "sweetalert2";
+import { Link } from "react-router-dom";
 
 
 const MyCart = () => {
@@ -42,17 +43,19 @@ const MyCart = () => {
 
 
     return (
-        <div className="w-full px-12">
+        <div className="w-full px-12 mt-20">
             <TitlePage title="Bistro Boss | My Cart"></TitlePage>
 
             <div className="flex justify-around w-full font-semibold h-20">
                 <h3 className="text-3xl">Total Items: {cart.length}</h3>
                 <h3 className="text-3xl">Total Price: ${total}</h3>
-                <button className="btn">Pay</button>
+                <Link to='/dashboard/payment'>
+                    <button className="btn btn-sm">Pay</button>
+                </Link>
             </div>
             <div>
-                <div className="overflow-x-auto w-full">
-                    <table className="table w-full">
+                <div className="overflow-x-auto h-[400px] w-full">
+                    <table className="table w-full ">
                         {/* head */}
                         <thead>
                             <tr>
