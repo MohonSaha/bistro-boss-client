@@ -1,12 +1,29 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import useAxiosSecure from "../../../hooks/useAxiosSecure";
+import useAuth from "../../../hooks/useAuth";
 
 
-const CheckoutForm = () => {
+const CheckoutForm = ({price}) => {
 
     const stripe = useStripe();
     const elements = useElements();
+    const {user} = useAuth();
+    const [axiosSecure] = useAxiosSecure()
     const [cardError, setCardError] = useState('');
+    const [clientSecret, setClientSecret] = useState('')
+    const [processing, setProcessing] = useState(false)
+    const [tranjectionId, setTranjectionId] = useState('');
+
+    useEffect( () =>{
+        axiosSecure.post('/create-payment-intent', {price})
+        .then(res => {
+            // console.log(res.data.clientSecret);
+            setClientSecret(res.data.clientSecret)
+        })
+    } ,[price, axiosSecure])
+
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -24,7 +41,7 @@ const CheckoutForm = () => {
         }
 
         // Use your card Element with other Stripe.js APIs
-        const { error, paymentMethod } = await stripe.createPaymentMethod({
+        const { error} = await stripe.createPaymentMethod({
             type: 'card',
             card,
         });
@@ -35,8 +52,37 @@ const CheckoutForm = () => {
         }
         else {
             setCardError('')
-            console.log('PaymentMethod', paymentMethod);
+            // console.log('PaymentMethod', paymentMethod);
         }
+
+        setProcessing(true)
+        const {paymentIntent, error: confirmError} = await stripe.confirmCardPayment(
+            clientSecret,
+            {
+              payment_method: {
+                card: card,
+                billing_details: {
+                  email: user?.email || 'unknown',
+                  name: user?.displayName || 'anonymous'
+                },
+              },
+            },
+          );
+
+          if(confirmError){
+            setCardError(confirmError)
+            console.log(confirmError);
+          }
+
+          console.log(paymentIntent);
+          setProcessing(false)
+
+          if(paymentIntent.status === 'succeeded'){
+            setTranjectionId(paymentIntent.id)
+            //TODO: next steps
+          }
+
+
     }
 
     return (
@@ -58,13 +104,17 @@ const CheckoutForm = () => {
                         },
                     }}
                 />
-                <button className="btn btn-sm btn-primary mt-6" type="submit" disabled={!stripe}>
+                <button className="btn btn-sm btn-primary mt-6" type="submit" disabled={!stripe || !clientSecret || processing}>
                     Pay Now
                 </button>
             </form>
 
             {
                 cardError && <p className="text-red-500">{cardError}</p>
+            }
+
+            {
+                tranjectionId && <p className="text-green-500">Tranjection Complite With tranjectionId: {tranjectionId}</p>
             }
 
         </>
